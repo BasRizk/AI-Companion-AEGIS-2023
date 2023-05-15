@@ -2,6 +2,7 @@ import os, argparse
 from flask import Flask
 from flask_socketio import SocketIO, Namespace, emit
 from assistant_controller import AssistantController
+from visual_processor import VisualProcessor
 from storage_manager import StorageManager, write_output
 from multiprocessing import Lock
 
@@ -32,10 +33,14 @@ class DigitalAssistant(Namespace):
         super()
         self.namespace = namespace
         self.assistant_controller = AssistantController()
+        self.visual_processor = VisualProcessor()
         self.lock = Lock()        
         
         self.responding_task = socketio.start_background_task(self.bg_responding_task)
         write_output("Server is about to be Up and Running..")
+    
+    def on_stream_video(self, data):
+        self.visual_processor.feed(data)
         
     def on_connect(self):
         write_output('client connected\n')
@@ -64,10 +69,8 @@ class DigitalAssistant(Namespace):
 
     def bg_responding_task(self):
         # READ BUFFER AND EMIT AS NEEDED
-        counter = 0
         while True:
-            socketio.sleep(0.01)
-            counter += 1
+            socketio.sleep(0.05) # 0.02
             with self.lock:
                 if self.assistant_controller.is_awake:
                     # write_output(f'is awake {counter}: {self.assistant_controller.is_awake}', end='\r')

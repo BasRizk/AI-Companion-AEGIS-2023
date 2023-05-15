@@ -1,0 +1,3 @@
+class DataBuffer:
+    # TODO
+    pass

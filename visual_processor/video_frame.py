@@ -1,0 +1,3 @@
+class VideoFrame:
+    # TODO
+    pass
